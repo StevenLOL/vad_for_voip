@@ -118,9 +118,9 @@ float LTSD::calcPower(){
 	float* amp = amp_history.at(amp_history.size() - 1);
 	float sum = 0.0;
 	for(int i = 0; i < windowsize; i++){
-		sum += amp[i] ^ 2;
+		sum += amp[i] * amp[i];
 	}
-	return 10 * log10(sum / windowsize);
+	return 10 * log10f(sum / windowsize);
 }
 
 unsigned char* LTSD::getSignal(){
@@ -158,7 +158,7 @@ float LTSD::calcLTSD(){
 	for(int i = 0; i < windowsize; i++){
 		sum += ltse[i] / noise_profile[i];
 	}
-	return 10 * log10(sum / windowsize);
+	return 10 * log10f(sum / windowsize);
 }
 
 void LTSD::createNoiseProfile(){
@@ -175,14 +175,14 @@ void LTSD::createNoiseProfile(){
 }
 
 void LTSD::createWindow(){
-	window = new double[windowsize];
+	window = new float[windowsize];
 	if (windowsize == 1){
 		window[0] = 1.0;
 	}else{
-		double n = windowsize -1;
-		double coef = M_PI * 2 / float(n);
+		float n = windowsize -1;
+		float coef = M_PI * 2 / float(n);
 		for (int i = 0; i < n; i++){
-			window[i] = 0.54 - 0.46 * cos(coef * float(n));
+			window[i] = 0.54 - 0.46 * cosf(coef * float(n));
 		}
 	}
 }
