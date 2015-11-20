@@ -7,7 +7,7 @@
 
 #include "MinimumStatistics.h"
 
-MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noiseProfile) {
+MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise_profile) {
 	// TODO Auto-generated constructor stub
 	int i = 0;
 	counter = 0;
@@ -38,16 +38,16 @@ MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise
 		actbuf[i] = makeVector(winsize, float(clear_max));
 	}
 	P_lambda = new float[windowsize];
-	memcpy(P_lambda, noiseProfile, sizeof(float) * windowsize);
+	memcpy(P_lambda, noise_profile, sizeof(float) * windowsize);
 	sn2_lambda = new float[windowsize];
-	memcpy(sn2_lambda, noiseProfile, sizeof(float) * windowsize);
+	memcpy(sn2_lambda, noise_profile, sizeof(float) * windowsize);
 	eP_lambda = new float[windowsize];
-	memcpy(eP_lambda, noiseProfile, sizeof(float) * windowsize);
+	memcpy(eP_lambda, noise_profile, sizeof(float) * windowsize);
 	eP2_lambda = new float[windowsize];
-	memcpy(eP2_lambda, noiseProfile, sizeof(float) * windowsize);
+	memcpy(eP2_lambda, noise_profile, sizeof(float) * windowsize);
 	powerVector(windowsize, eP2_lambda);
 	Pmin_u_lambda = new float[windowsize];
-	memcpy(Pmin_u_lambda, noiseProfile, sizeof(float) * windowsize);
+	memcpy(Pmin_u_lambda, noise_profile, sizeof(float) * windowsize);
 
 
 	power = new float[windowsize];
