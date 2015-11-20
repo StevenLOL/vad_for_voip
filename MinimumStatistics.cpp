@@ -24,18 +24,18 @@ MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise
 	H = 3.5;
 	subwc = V - 1;
 	ibuf  = 0;
-	lmin_flag_lambda = makeZeroIntVector(winsize);
+	lmin_flag_lambda = makeVector(winsize, int(0));
 	alpha_max = 0.96;
 	beta_max  = 0.8;
 	float qeqmax = 14.0;
 	qeqimin = 1/qeqmax;
 	clear_max = 65535*65535;
-	actmin_lambda = makeVector(winsize, clear_max);
-	actmin_lambda_sub = makeVector(winsize, clear_max);
-	Pmin_u_lambda = makeVector(winsize, clear_max);
+	actmin_lambda = makeVector(winsize, float(clear_max));
+	actmin_lambda_sub = makeVector(winsize, float(clear_max));
+	Pmin_u_lambda = makeVector(winsize, float(clear_max));
 	actbuf = new float*[U];
 	for (i = 0;i < U; i++){
-		actbuf[i] = makeVector(winsize, clear_max);
+		actbuf[i] = makeVector(winsize, float(clear_max));
 	}
 	P_lambda = new float[windowsize];
 	memcpy(P_lambda, noiseProfile, sizeof(float) * windowsize);
@@ -162,7 +162,7 @@ void MinimumStatistics::process(float *amp){
 	}
 
 	// calc actmin,
-	resetIntVector(windowsize, k_mod, 0); // reset to 0
+	resetVector(windowsize, k_mod, 0); // reset to 0
 	for(i = 0; i < windowsize; i++){
 		// if (P * Bmin * Bc < actmin)
 		tmp = P_lambda[i] * Bmin_lambda[i] * Bc_lambda;
@@ -228,7 +228,7 @@ void MinimumStatistics::process(float *amp){
 			}
 
 		}
-		resetIntVector(windowsize, lmin_flag_lambda, 0);
+		resetVector(windowsize, lmin_flag_lambda, 0);
 		resetVector(windowsize, actmin_lambda, float(clear_max));
 		subwc = 0;
 	}else{

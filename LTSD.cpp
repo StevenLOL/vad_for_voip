@@ -7,41 +7,41 @@
 
 #include "LTSD.h"
 
-LTSD::LTSD(int windowsize, int samplingrate, int order, float e0, float e1, float lambda0, float lambda1){
-	m_windowsize = windowsize;
-	m_samplingrate = samplingrate;
+LTSD::LTSD(int winsize, int samprate, int order, float e0, float e1, float lambda0, float lambda1){
+	windowsize = winsize;
+	samplingrate = samprate;
 	m_order = order;
 	m_e0 = e0;
 	m_e1 = e1;
 	m_lambda0 = lambda0;
 	m_lambda1 = lambda1;
-	m_in = new float[m_windowsize];
-	m_ltse = new float[m_windowsize];
-	m_noiseProfile = new float[m_windowsize];
-	for(int i=0; i< m_windowsize; i++){
-		m_noiseProfile[i] = 0.0;
+	fft_in = new float[windowsize];
+	ltse = new float[windowsize];
+	noise_profile = new float[windowsize];
+	for(int i=0; i< windowsize; i++){
+		noise_profile[i] = 0.0;
 	}
-	m_out = new float[m_windowsize];
-	m_estimated = false;
+	fft_out = new float[windowsize];
+	estimated = false;
 	createWindow();
-	m_fftreal = new ffft::FFTReal<float>(m_windowsize);
+	fftreal = new ffft::FFTReal<float>(windowsize);
 }
 
 LTSD::~LTSD() {
-	for (std::deque<unsigned char*>::iterator its = m_signalHistory.begin(); its != m_signalHistory.end(); its++){
+	for (std::deque<unsigned char*>::iterator its = signal_history.begin(); its != signal_history.end(); its++){
 		delete[] (*its);
 	}
-	for (std::deque<float*>::iterator ita = m_ampHistory.begin(); ita != m_ampHistory.end(); ita++){
+	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
 		delete[] (*ita);
 	}
-	if (m_window != NULL){
-		delete[] m_window;
+	if (window != NULL){
+		delete[] window;
 	}
-	delete[] m_in;
-	delete[] m_out;
-	delete[] m_ltse;
-	delete[] m_noiseProfile;
-	delete m_fftreal;
+	delete[] fft_in;
+	delete[] fft_out;
+	delete[] ltse;
+	delete[] noise_profile;
+	delete fftreal;
 
 	if (ms != NULL){
 		delete ms;
@@ -50,37 +50,37 @@ LTSD::~LTSD() {
 
 bool LTSD::process(unsigned char* signal){
 
-	for(int i=0; i<m_windowsize; i++){
-			m_in[i]=((float(signal[i] - 127)) / 128.0) * m_window[i];
+	for(int i=0; i<windowsize; i++){
+			fft_in[i]=((float(signal[i] - 127)) / 128.0) * window[i];
 	}
-	m_fftreal->do_fft(m_in, m_out);
-	float *amp = new float[m_windowsize];
-	for(int i=0; i<m_windowsize; i++){
-		amp[i] = fabsf(m_out[i]);
+	fftreal->do_fft(fft_in, fft_out);
+	float *amp = new float[windowsize];
+	for(int i=0; i<windowsize; i++){
+		amp[i] = fabsf(fft_out[i]);
 	}
-	unsigned char* sig = new unsigned char[m_windowsize];
-	memcpy(sig, signal, sizeof(unsigned char) * m_windowsize);
-	m_signalHistory.push_back(sig);
-	m_ampHistory.push_back(amp);
+	unsigned char* sig = new unsigned char[windowsize];
+	memcpy(sig, signal, sizeof(unsigned char) * windowsize);
+	signal_history.push_back(sig);
+	amp_history.push_back(amp);
 
-	if (m_signalHistory.size() > m_order){
-		if(!m_estimated){
+	if (signal_history.size() > m_order){
+		if(!estimated){
 			// 先頭orderフレームをノイズプロファイルに使う。本当はもっと長く取りたいけどとりあえずやってみる
 			// MS法で逐次ノイズプロファイル更新を実装するほうが良さそう
 			createNoiseProfile();
-			m_estimated = true;
-			ms = new MinimumStatistics(m_windowsize, m_samplingrate, m_noiseProfile);
+			estimated = true;
+			ms = new MinimumStatistics(windowsize, samplingrate, noise_profile);
 		}
 
 		if (ms != NULL){
 			ms->process(amp);
-			ms->updateNoiseProfile(m_noiseProfile);
+			ms->updateNoiseProfile(noise_profile);
 		}
 		//履歴長が指定以上なので、先頭を削除してltsd判定
-		delete[] m_signalHistory[0];
-		m_signalHistory.pop_front();
-		delete[] m_ampHistory[0];
-		m_ampHistory.pop_front();
+		delete[] signal_history[0];
+		signal_history.pop_front();
+		delete[] amp_history[0];
+		amp_history.pop_front();
 
 		return isSignal();
 	}else{
@@ -89,7 +89,7 @@ bool LTSD::process(unsigned char* signal){
 }
 
 bool LTSD::isSignal(){
-	ltse();
+	calcLTSE();
 	float ltsd = ltsd();
 	float e = calcPower();
 	if (e < m_e0){
@@ -115,74 +115,74 @@ bool LTSD::isSignal(){
 }
 
 float LTSD::calcPower(){
-	float* amp = m_ampHistory.at(m_ampHistory.size() - 1);
+	float* amp = amp_history.at(amp_history.size() - 1);
 	float sum = 0.0;
-	for(int i = 0; i < m_windowsize; i++){
+	for(int i = 0; i < windowsize; i++){
 		sum += amp[i] ^ 2;
 	}
-	return 10 * log10(sum / m_windowsize);
+	return 10 * log10(sum / windowsize);
 }
 
 unsigned char* LTSD::getSignal(){
-	if (m_signalHistory.size() != m_order){
+	if (signal_history.size() != m_order){
 		return NULL;
 	}else{
-		unsigned char* src = m_signalHistory.at(m_signalHistory.size() - 1);
-		unsigned char* dest = new unsigned char[m_windowsize];
-		memcpy(dest, src, sizeof(unsigned char) * m_windowsize);
+		unsigned char* src = signal_history.at(signal_history.size() - 1);
+		unsigned char* dest = new unsigned char[windowsize];
+		memcpy(dest, src, sizeof(unsigned char) * windowsize);
 		return dest;
 	}
 }
 
-void LTSD::ltse(){
+void LTSD::calcLTSE(){
 	int i = 0;
 	float amp;
-	for(i=0;i < m_windowsize; i++){
-		m_ltse[i] = 0.0;
+	for(i=0;i < windowsize; i++){
+		ltse[i] = 0.0;
 	}
-	for (std::deque<double*>::iterator ita = m_ampHistory.begin(); ita != m_ampHistory.end(); ita++){
-		for(i=0;i < m_windowsize; i++){
+	for (std::deque<double*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
+		for(i=0;i < windowsize; i++){
 			amp = (*ita)[i];
-			if (m_ltse[i] < amp){
-				m_ltse[i] = amp;
+			if (ltse[i] < amp){
+				ltse[i] = amp;
 			}
 		}
 	}
-	for(i=0;i < m_windowsize; i++){
-		m_ltse[i] = m_ltse[i] * m_ltse[i];
+	for(i=0;i < windowsize; i++){
+		ltse[i] = ltse[i] * ltse[i];
 	}
 }
 
-float LTSD::ltsd(){
+float LTSD::calcLTSD(){
 	float sum = 0.0;
-	for(int i = 0; i < m_windowsize; i++){
-		sum += m_ltse[i] / m_noiseProfile[i];
+	for(int i = 0; i < windowsize; i++){
+		sum += ltse[i] / noise_profile[i];
 	}
-	return 10 * log10(sum / m_windowsize);
+	return 10 * log10(sum / windowsize);
 }
 
 void LTSD::createNoiseProfile(){
 	int i = 0;
-	int s = m_ampHistory.size();
-	for (std::deque<float*>::iterator ita = m_ampHistory.begin(); ita != m_ampHistory.end(); ita++){
-		for(i=0;i < m_windowsize; i++){
-			m_noiseProfile[i] += (*ita)[i];
+	int s = amp_history.size();
+	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
+		for(i=0;i < windowsize; i++){
+			noise_profile[i] += (*ita)[i];
 		}
 	}
-	for(i=0;i < m_windowsize; i++){
-		m_noiseProfile[i] = powf(m_noiseProfile[i] / s, 2);
+	for(i=0;i < windowsize; i++){
+		noise_profile[i] = powf(noise_profile[i] / s, 2);
 	}
 }
 
 void LTSD::createWindow(){
-	m_window = new double[m_windowsize];
-	if (m_windowsize == 1){
-		m_window[0] = 1.0;
+	window = new double[windowsize];
+	if (windowsize == 1){
+		window[0] = 1.0;
 	}else{
-		double n = m_windowsize -1;
+		double n = windowsize -1;
 		double coef = M_PI * 2 / float(n);
 		for (int i = 0; i < n; i++){
-			m_window[i] = 0.54 - 0.46 * cos(coef * float(n));
+			window[i] = 0.54 - 0.46 * cos(coef * float(n));
 		}
 	}
 }
