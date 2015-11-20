@@ -12,18 +12,18 @@ using namespace std;
 
 int main() {
 	LTSD ltsd(256, 8000, 7);
-	unsigned char signal[256 * 10000];
+	short signal[256 * 10000];
 	for (int i = 0; i < 256 * 10000; i++){
-		signal[i] = rand() % 256;
+		signal[i] = (rand() * rand()) % (32767 * 2 + 1) - 32767;
 	}
-	unsigned char *sig = &signal[0];
+	short *sig = &signal[0];
 
 	for(int i = 0; i< 10000; i++){
 		bool is_signal = ltsd.process(sig);
 		(*sig)+=256;
 		cout << is_signal << endl;
 		if(is_signal){
-			unsigned char *hoge = ltsd.getSignal();
+			short *hoge = ltsd.getSignal();
 			delete[] hoge;
 		}
 	}

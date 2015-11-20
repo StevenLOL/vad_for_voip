@@ -20,8 +20,8 @@ public:
 	// windowsizeは2の冪乗(256以上)、orderは奇数(5, 7, 11)が望ましい
 	LTSD(int winsize, int samprate, int order = 5,float e0 = 200.0, float e1 = 300.0, float lambda0 = 40.0, float lambda1 = 50.0);
 	virtual ~LTSD();
-	bool process(unsigned char *signal);
-	unsigned char* getSignal(); // 取得したsignalは必ず利用後deleteすること
+	bool process(short *signal);
+	short* getSignal(); // 取得したsignalは必ず利用後deleteすること
 private:
 	void createWindow();
 	void calcLTSE();
@@ -46,7 +46,7 @@ private:
 	float *fft_in;
 	float* fft_out;
 	std::deque<float*> amp_history;
-	std::deque<unsigned char*> signal_history;
+	std::deque<short*> signal_history;
 };
 
 #endif /* LTSD_H_ */

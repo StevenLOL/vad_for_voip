@@ -28,7 +28,7 @@ LTSD::LTSD(int winsize, int samprate, int order, float e0, float e1, float lambd
 }
 
 LTSD::~LTSD() {
-	for (std::deque<unsigned char*>::iterator its = signal_history.begin(); its != signal_history.end(); its++){
+	for (std::deque<short*>::iterator its = signal_history.begin(); its != signal_history.end(); its++){
 		delete[] (*its);
 	}
 	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
@@ -48,17 +48,17 @@ LTSD::~LTSD() {
 	}
 }
 
-bool LTSD::process(unsigned char* signal){
+bool LTSD::process(short* signal){
 	for(int i=0; i<windowsize; i++){
-		fft_in[i]=((float(signal[i] - 127)) / 128.0) * window[i];
+		fft_in[i]=(float(signal[i]) / 32767.0) * window[i];
 	}
 	fftreal->do_fft(fft_in, fft_out);
 	float *amp = new float[windowsize];
 	for(int i=0; i<windowsize; i++){
 		amp[i] = fabsf(fft_out[i]);
 	}
-	unsigned char* sig = new unsigned char[windowsize];
-	memcpy(sig, signal, sizeof(unsigned char) * windowsize);
+	short* sig = new short[windowsize];
+	memcpy(sig, signal, sizeof(short) * windowsize);
 	signal_history.push_back(sig);
 	amp_history.push_back(amp);
 
@@ -120,13 +120,13 @@ float LTSD::calcPower(){
 	return 10 * log10f(sum / windowsize);
 }
 
-unsigned char* LTSD::getSignal(){
+short* LTSD::getSignal(){
 	if (signal_history.size() != m_order){
 		return NULL;
 	}else{
-		unsigned char* src = signal_history.at(signal_history.size() - 1);
-		unsigned char* dest = new unsigned char[windowsize];
-		memcpy(dest, src, sizeof(unsigned char) * windowsize);
+		short* src = signal_history.at(signal_history.size() - 1);
+		short* dest = new short[windowsize];
+		memcpy(dest, src, sizeof(short) * windowsize);
 		return dest;
 	}
 }
