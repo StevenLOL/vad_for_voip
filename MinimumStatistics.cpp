@@ -29,7 +29,7 @@ MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise
 	beta_max  = 0.8;
 	float qeqmax = 14.0;
 	qeqimin = 1/qeqmax;
-	clear_max = 65535*65535;
+	clear_max = 4294836225; // max of uint32_t
 	actmin_lambda = makeVector(winsize, clear_max);
 	actmin_lambda_sub = makeVector(winsize, clear_max);
 	Pmin_u_lambda = makeVector(winsize, clear_max);
