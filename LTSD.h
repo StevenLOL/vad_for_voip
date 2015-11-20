@@ -9,12 +9,12 @@
 #ifndef LTSD_H_
 #define LTSD_H_
 
-#include <string.h>
 #include <vector>
 #include <deque>
+#include "string.h"
 #include "math.h"
 #include "ffft/FFTReal.h"
-
+#include "MinimumStatistics.h"
 class LTSD {
 public:
 	// windowsizeは2の冪乗(256以上)、orderは奇数(5, 7, 11)が望ましい

@@ -49,9 +49,8 @@ LTSD::~LTSD() {
 }
 
 bool LTSD::process(unsigned char* signal){
-
 	for(int i=0; i<windowsize; i++){
-			fft_in[i]=((float(signal[i] - 127)) / 128.0) * window[i];
+		fft_in[i]=((float(signal[i] - 127)) / 128.0) * window[i];
 	}
 	fftreal->do_fft(fft_in, fft_out);
 	float *amp = new float[windowsize];
@@ -65,8 +64,6 @@ bool LTSD::process(unsigned char* signal){
 
 	if (signal_history.size() > m_order){
 		if(!estimated){
-			// 先頭orderフレームをノイズプロファイルに使う。本当はもっと長く取りたいけどとりあえずやってみる
-			// MS法で逐次ノイズプロファイル更新を実装するほうが良さそう
 			createNoiseProfile();
 			estimated = true;
 			ms = new MinimumStatistics(windowsize, samplingrate, noise_profile);
@@ -90,7 +87,7 @@ bool LTSD::process(unsigned char* signal){
 
 bool LTSD::isSignal(){
 	calcLTSE();
-	float ltsd = ltsd();
+	float ltsd = calcLTSD();
 	float e = calcPower();
 	if (e < m_e0){
 		if(ltsd > m_lambda0){
@@ -140,7 +137,7 @@ void LTSD::calcLTSE(){
 	for(i=0;i < windowsize; i++){
 		ltse[i] = 0.0;
 	}
-	for (std::deque<double*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
+	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
 		for(i=0;i < windowsize; i++){
 			amp = (*ita)[i];
 			if (ltse[i] < amp){

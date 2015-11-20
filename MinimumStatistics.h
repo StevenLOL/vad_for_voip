@@ -9,7 +9,8 @@
 #define MINIMUMSTATISTICS_H_
 
 #include "utils.h"
-#include <string.h>
+#include "string.h"
+#include "math.h"
 
 class MinimumStatistics {
 public:
@@ -35,7 +36,7 @@ private:
 	float alpha_max;
 	float beta_max;
 	float qeqimin;
-	uint32_t clear_max;
+	float clear_max;
 	float *actmin_lambda;
 	float *actmin_lambda_sub;
 	float *Pmin_u_lambda;
@@ -44,7 +45,6 @@ private:
 	float *sn2_lambda;
 	float *eP_lambda;
 	float *eP2_lambda;
-	float *Pmin_u_lambda;
 	float *power;
 
 	float *alpha_lambda_hat;
