@@ -7,12 +7,12 @@
 
 #include "MinimumStatistics.h"
 
-MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise_profile) {
+MinimumStatistics::MinimumStatistics(int size, int samplingrate, float *noise_profile) {
 	// TODO Auto-generated constructor stub
 	int i = 0;
 	counter = 0;
-	windowsize = winsize;
-	float frametime = (float)windowsize / (float)samplingrate;
+	fftsize = size;
+	float frametime = (float)fftsize / (float)samplingrate;
 	snrexp = (-1.0)*frametime/0.064;
 	av = 2.12;
 	alpha_c_lambda = 0.7;
@@ -24,39 +24,39 @@ MinimumStatistics::MinimumStatistics(int winsize, int samplingrate, float *noise
 	H = 3.5;
 	subwc = V - 1;
 	ibuf  = 0;
-	lmin_flag_lambda = makeVector(winsize, int(0));
+	lmin_flag_lambda = makeVector(fftsize, int(0));
 	alpha_max = 0.96;
 	beta_max  = 0.8;
 	float qeqmax = 14.0;
 	qeqimin = 1/qeqmax;
 	clear_max = 4294836225; // max of uint32_t
-	actmin_lambda = makeVector(winsize, clear_max);
-	actmin_lambda_sub = makeVector(winsize, clear_max);
-	Pmin_u_lambda = makeVector(winsize, clear_max);
+	actmin_lambda = makeVector(fftsize, clear_max);
+	actmin_lambda_sub = makeVector(fftsize, clear_max);
+	Pmin_u_lambda = makeVector(fftsize, clear_max);
 	actbuf = new float*[U];
 	for (i = 0;i < U; i++){
-		actbuf[i] = makeVector(winsize, clear_max);
+		actbuf[i] = makeVector(fftsize, clear_max);
 	}
-	P_lambda = new float[windowsize];
-	memcpy(P_lambda, noise_profile, sizeof(float) * windowsize);
-	sn2_lambda = new float[windowsize];
-	memcpy(sn2_lambda, noise_profile, sizeof(float) * windowsize);
-	eP_lambda = new float[windowsize];
-	memcpy(eP_lambda, noise_profile, sizeof(float) * windowsize);
-	eP2_lambda = new float[windowsize];
-	memcpy(eP2_lambda, noise_profile, sizeof(float) * windowsize);
-	powerVector(windowsize, eP2_lambda);
-	Pmin_u_lambda = new float[windowsize];
-	memcpy(Pmin_u_lambda, noise_profile, sizeof(float) * windowsize);
+	P_lambda = new float[fftsize];
+	memcpy(P_lambda, noise_profile, sizeof(float) * fftsize);
+	sn2_lambda = new float[fftsize];
+	memcpy(sn2_lambda, noise_profile, sizeof(float) * fftsize);
+	eP_lambda = new float[fftsize];
+	memcpy(eP_lambda, noise_profile, sizeof(float) * fftsize);
+	eP2_lambda = new float[fftsize];
+	memcpy(eP2_lambda, noise_profile, sizeof(float) * fftsize);
+	powerVector(fftsize, eP2_lambda);
+	Pmin_u_lambda = new float[fftsize];
+	memcpy(Pmin_u_lambda, noise_profile, sizeof(float) * fftsize);
 
 
-	power = new float[windowsize];
+	power = new float[fftsize];
 
-	alpha_lambda_hat = new float[windowsize];
-	Qeq_lambda_inverse = new float[windowsize];
-	Bmin_lambda = new float[windowsize];
-	Bmin_lambda_sub = new float[windowsize];
-	k_mod = new int[windowsize];
+	alpha_lambda_hat = new float[fftsize];
+	Qeq_lambda_inverse = new float[fftsize];
+	Bmin_lambda = new float[fftsize];
+	Bmin_lambda_sub = new float[fftsize];
+	k_mod = new int[fftsize];
 }
 
 MinimumStatistics::~MinimumStatistics() {
@@ -87,11 +87,11 @@ MinimumStatistics::~MinimumStatistics() {
 void MinimumStatistics::process(float *amp){
 	int i = 0;
 	int j = 0;
-	for (i = 0; i< windowsize; i++){
+	for (i = 0; i< fftsize; i++){
 		power[i] = amp[i] * amp[i];
 	}
 	// eq9
-	float tmp = (sumVector(windowsize, amp)/sumVector(windowsize, power) - 1);
+	float tmp = (sumVector(fftsize, amp)/sumVector(fftsize, power) - 1);
 	float alpha_c_lambda_tilde = 1.0 / (tmp * tmp + 1.0);
 
 	// eq10
@@ -103,29 +103,29 @@ void MinimumStatistics::process(float *amp){
 	alpha_c_lambda = alpha_c_lambda * 0.7 + 0.3 * tmp;
 
 	// eq11
-	for(i = 0; i < windowsize; i++){
+	for(i = 0; i < fftsize; i++){
 		tmp = (P_lambda[i] / sn2_lambda[i] - 1.0);
 		alpha_lambda_hat[i] = (alpha_max / alpha_c_lambda) / (tmp * tmp + 1);
 	}
 
 	// eq12
-	float snr = sumVector(windowsize, P_lambda) / sumVector(windowsize, sn2_lambda);
+	float snr = sumVector(fftsize, P_lambda) / sumVector(fftsize, sn2_lambda);
 	tmp = powf(snr, snrexp);
 	if (tmp > 0.3){
 		tmp = 0.3;
 	}
-	for(i = 0; i < windowsize; i++){
+	for(i = 0; i < fftsize; i++){
 		if (alpha_lambda_hat[i] < tmp){
 			alpha_lambda_hat[i] = tmp;
 		}
 	}
 
 	// eq4 smoothed periodgram
-	for(i = 0; i < windowsize; i++){
+	for(i = 0; i < fftsize; i++){
 		P_lambda[i] = alpha_lambda_hat[i] * P_lambda[i] + (1.0 - alpha_lambda_hat[i]) * power[i];
 	}
 
-	for(i = 0; i < windowsize; i++){
+	for(i = 0; i < fftsize; i++){
 		// eq20
 		tmp = alpha_lambda_hat[i] * alpha_lambda_hat[i];
 		if (tmp > beta_max){
@@ -147,11 +147,11 @@ void MinimumStatistics::process(float *amp){
 		}
 		Qeq_lambda_inverse[i] = tmp;
 	}
-	float eQ_lambda = sumVector(windowsize, Qeq_lambda_inverse) / windowsize;
+	float eQ_lambda = sumVector(fftsize, Qeq_lambda_inverse) / fftsize;
 	float Bc_lambda = 1.0 + av * sqrtf(eQ_lambda);
 
 	// eq 16
-	for(i = 0; i < windowsize; i++){
+	for(i = 0; i < fftsize; i++){
 		// for overall window of length D
 		tmp = (1.0 / Qeq_lambda_inverse[i] - 2 * M) / (1.0 - M);
 		Bmin_lambda[i] = 1.0 + (D - 1) * 2.0 / tmp;
@@ -161,8 +161,8 @@ void MinimumStatistics::process(float *amp){
 	}
 
 	// calc actmin,
-	resetVector(windowsize, k_mod, 0); // reset to 0
-	for(i = 0; i < windowsize; i++){
+	resetVector(fftsize, k_mod, 0); // reset to 0
+	for(i = 0; i < fftsize; i++){
 		// if (P * Bmin * Bc < actmin)
 		tmp = P_lambda[i] * Bmin_lambda[i] * Bc_lambda;
 		if (actmin_lambda[i] > tmp){
@@ -173,7 +173,7 @@ void MinimumStatistics::process(float *amp){
 	}
 
 	if(0 < subwc && subwc < V-1){
-		for(i = 0; i < windowsize; i++){
+		for(i = 0; i < fftsize; i++){
 			// sample is NOT the fisrt or the last; middle of buffer allows a local minimum
 			if (lmin_flag_lambda[i] + k_mod[i] > 1){
 				lmin_flag_lambda[i] = 1;
@@ -184,12 +184,12 @@ void MinimumStatistics::process(float *amp){
 				Pmin_u_lambda[i] = actmin_lambda_sub[i];
 			}
 		}
-		memcpy(sn2_lambda, Pmin_u_lambda, sizeof(float) * windowsize);
+		memcpy(sn2_lambda, Pmin_u_lambda, sizeof(float) * fftsize);
 		subwc++;
 	}else if(subwc >= V - 1){
 		// store actmin_lamnda, note actbuf is NOT cyclic!
 		ibuf = ibuf % U;
-		memcpy(actbuf[ibuf], actmin_lambda, sizeof(float) * windowsize);
+		memcpy(actbuf[ibuf], actmin_lambda, sizeof(float) * fftsize);
 		ibuf++;
 
 		// calc noise_slope_max
@@ -205,7 +205,7 @@ void MinimumStatistics::process(float *amp){
 		}
 
 		// sample IS the last; end of buffer lets finishing subwindow process and a buffer switch
-		for(i = 0; i < windowsize; i++){
+		for(i = 0; i < fftsize; i++){
 			if (lmin_flag_lambda[i] - k_mod[i] > 0){
 				lmin_flag_lambda[i] = 1;
 			}else{
@@ -227,8 +227,8 @@ void MinimumStatistics::process(float *amp){
 			}
 
 		}
-		resetVector(windowsize, lmin_flag_lambda, 0);
-		resetVector(windowsize, actmin_lambda, clear_max);
+		resetVector(fftsize, lmin_flag_lambda, 0);
+		resetVector(fftsize, actmin_lambda, clear_max);
 		subwc = 0;
 	}else{
 		subwc++;
@@ -237,5 +237,5 @@ void MinimumStatistics::process(float *amp){
 }
 
 void MinimumStatistics::updateNoiseProfile(float *noise){
-	memcpy(noise, sn2_lambda, sizeof(float) * windowsize);
+	memcpy(noise, sn2_lambda, sizeof(float) * fftsize);
 }

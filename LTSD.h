@@ -17,7 +17,7 @@
 #include "MinimumStatistics.h"
 class LTSD {
 public:
-	// windowsizeは2の冪乗(256以上)、orderは奇数(5, 7, 11)が望ましい
+	// windowsizeは2の冪乗(256以上)で必ず偶数サイズにすること、orderは奇数(5, 7, 11)が望ましい
 	LTSD(int winsize, int samprate, int order = 5,float e0 = 200.0, float e1 = 300.0, float lambda0 = 40.0, float lambda1 = 50.0);
 	virtual ~LTSD();
 	bool process(short *signal);
@@ -30,6 +30,7 @@ private:
 	void createNoiseProfile();
 	float calcPower();
 	int windowsize;
+	int fftsize;
 	int samplingrate;
 	int m_order;
 	float m_e0;

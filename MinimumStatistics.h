@@ -14,13 +14,13 @@
 
 class MinimumStatistics {
 public:
-	MinimumStatistics(int winsize, int samplingrate, float *noiseProfile);
+	MinimumStatistics(int size, int samplingrate, float *noiseProfile);
 	virtual ~MinimumStatistics();
 	void process(float *amp);
 	void updateNoiseProfile(float *noise);
 private:
 	int counter;
-	int windowsize;
+	int fftsize;
 	float snrexp;
 	float av;
 	float alpha_c_lambda;

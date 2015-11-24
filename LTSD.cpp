@@ -9,6 +9,7 @@
 
 LTSD::LTSD(int winsize, int samprate, int order, float e0, float e1, float lambda0, float lambda1){
 	windowsize = winsize;
+	fftsize = winsize / 2;
 	samplingrate = samprate;
 	m_order = order;
 	m_e0 = e0;
@@ -16,15 +17,15 @@ LTSD::LTSD(int winsize, int samprate, int order, float e0, float e1, float lambd
 	m_lambda0 = lambda0;
 	m_lambda1 = lambda1;
 	fft_in = new float[windowsize];
-	ltse = new float[windowsize];
-	noise_profile = new float[windowsize];
-	for(int i=0; i< windowsize; i++){
+	ltse = new float[fftsize];
+	noise_profile = new float[fftsize];
+	for(int i=0; i< fftsize; i++){
 		noise_profile[i] = 0.0;
 	}
 	fft_out = new float[windowsize];
 	estimated = false;
 	createWindow();
-	fftreal = new ffft::FFTReal<float>(windowsize);
+	fftreal = new ffft::FFTReal<float>(fftsize);
 }
 
 LTSD::~LTSD() {
@@ -53,8 +54,8 @@ bool LTSD::process(short* signal){
 		fft_in[i]=(float(signal[i]) / 32767.0) * window[i];
 	}
 	fftreal->do_fft(fft_in, fft_out);
-	float *amp = new float[windowsize];
-	for(int i=0; i<windowsize; i++){
+	float *amp = new float[fftsize];
+	for(int i=0; i<fftsize; i++){
 		amp[i] = fabsf(fft_out[i]);
 	}
 	short* sig = new short[windowsize];
@@ -114,10 +115,10 @@ bool LTSD::isSignal(){
 float LTSD::calcPower(){
 	float* amp = amp_history.at(amp_history.size() - 1);
 	float sum = 0.0;
-	for(int i = 0; i < windowsize; i++){
+	for(int i = 0; i < fftsize; i++){
 		sum += amp[i] * amp[i];
 	}
-	return 10 * log10f(sum / windowsize);
+	return 10 * log10f(sum / fftsize);
 }
 
 short* LTSD::getSignal(){
@@ -145,7 +146,7 @@ void LTSD::calcLTSE(){
 			}
 		}
 	}
-	for(i=0;i < windowsize; i++){
+	for(i=0;i < fftsize; i++){
 		ltse[i] = ltse[i] * ltse[i];
 	}
 }
@@ -162,11 +163,11 @@ void LTSD::createNoiseProfile(){
 	int i = 0;
 	int s = amp_history.size();
 	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
-		for(i=0;i < windowsize; i++){
+		for(i=0;i < fftsize; i++){
 			noise_profile[i] += (*ita)[i];
 		}
 	}
-	for(i=0;i < windowsize; i++){
+	for(i=0;i < fftsize; i++){
 		noise_profile[i] = powf(noise_profile[i] / s, 2);
 	}
 }
