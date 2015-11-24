@@ -53,7 +53,7 @@ bool LTSD::process(short* signal){
 	for(int i=0; i<windowsize; i++){
 		fft_in[i]=(float(signal[i]) / 32767.0) * window[i];
 	}
-	fftreal->do_fft(fft_in, fft_out);
+	fftreal->do_fft(fft_out, fft_in);
 	float *amp = new float[fftsize];
 	for(int i=0; i<fftsize; i++){
 		amp[i] = fabsf(fft_out[i]);
@@ -180,7 +180,7 @@ void LTSD::createWindow(){
 		float n = windowsize -1;
 		float coef = M_PI * 2 / float(n);
 		for (int i = 0; i < n; i++){
-			window[i] = 0.54 - 0.46 * cosf(coef * float(n));
+			window[i] = 0.54 - 0.46 * cosf(coef * float(i));
 		}
 	}
 }
