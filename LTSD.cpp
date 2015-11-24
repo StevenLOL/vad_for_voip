@@ -67,7 +67,7 @@ bool LTSD::process(short* signal){
 		if(!estimated){
 			createNoiseProfile();
 			estimated = true;
-			ms = new MinimumStatistics(windowsize, samplingrate, noise_profile);
+			ms = new MinimumStatistics(fftsize, samplingrate, noise_profile);
 		}
 
 		if (ms != NULL){
@@ -135,11 +135,11 @@ short* LTSD::getSignal(){
 void LTSD::calcLTSE(){
 	int i = 0;
 	float amp;
-	for(i=0;i < windowsize; i++){
+	for(i=0;i < fftsize; i++){
 		ltse[i] = 0.0;
 	}
 	for (std::deque<float*>::iterator ita = amp_history.begin(); ita != amp_history.end(); ita++){
-		for(i=0;i < windowsize; i++){
+		for(i=0;i < fftsize; i++){
 			amp = (*ita)[i];
 			if (ltse[i] < amp){
 				ltse[i] = amp;
@@ -153,10 +153,10 @@ void LTSD::calcLTSE(){
 
 float LTSD::calcLTSD(){
 	float sum = 0.0;
-	for(int i = 0; i < windowsize; i++){
+	for(int i = 0; i < fftsize; i++){
 		sum += ltse[i] / noise_profile[i];
 	}
-	return 10 * log10f(sum / windowsize);
+	return 10 * log10f(sum / fftsize);
 }
 
 void LTSD::createNoiseProfile(){
