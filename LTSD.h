@@ -18,11 +18,14 @@
 #include "MinimumStatistics.h"
 class LTSD {
 public:
-	// windowsizeは2の冪乗(256以上)で必ず偶数サイズにすること、orderは奇数(5, 7, 11)が望ましい
+	// windowsizeは2の冪乗(256以上)で必ず偶数サイズにすること。
+	// この値は、short型で換算した場合のサンプル数(つまりbyte配列の長さ/2)。
+	// orderは奇数(5, 7, 11)が望ましい
+	// sampling rateは、録音時のサンプリングレートを用いる
 	LTSD(int winsize, int samprate, int order = 7,double e0 = -50.0, double e1 = -20.0, double lambda0 = 20.0, double lambda1 = 10.0);
 	virtual ~LTSD();
 	bool process(char *input);
-	char* getSignal(); // 取得したsignalは必ず利用後deleteすること
+	char* getSignal(); // 取得したsignalは必ず利用後deleteすること。byteで返しているが、アーキテクチャのエンディアンでのshort型の配列になっている
 private:
 	void createWindow();
 	void calcLTSE();
