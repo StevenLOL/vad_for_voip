@@ -14,43 +14,43 @@
 
 class MinimumStatistics {
 public:
-	MinimumStatistics(int size, int samplingrate, float *noiseProfile);
+	MinimumStatistics(int size, int samplingrate, double *noiseProfile);
 	virtual ~MinimumStatistics();
-	void process(float *amp);
-	void updateNoiseProfile(float *noise);
+	void process(double *amp);
+	void updateNoiseProfile(double *noise);
 private:
 	int counter;
 	int fftsize;
-	float snrexp;
-	float av;
-	float alpha_c_lambda;
+	double snrexp;
+	double av;
+	double alpha_c_lambda;
 	int U;
 	int V;
 	int D;
-	float M;
-	float M2;
-	float H;
+	double M;
+	double M2;
+	double H;
 	int subwc;
 	int ibuf;
 	int *lmin_flag_lambda;
-	float alpha_max;
-	float beta_max;
-	float qeqimin;
-	float clear_max;
-	float *actmin_lambda;
-	float *actmin_lambda_sub;
-	float *Pmin_u_lambda;
-	float **actbuf;
-	float *P_lambda;
-	float *sn2_lambda;
-	float *eP_lambda;
-	float *eP2_lambda;
-	float *power;
+	double alpha_max;
+	double beta_max;
+	double qeqimin;
+	double clear_max;
+	double *actmin_lambda;
+	double *actmin_lambda_sub;
+	double *Pmin_u_lambda;
+	double **actbuf;
+	double *P_lambda;
+	double *sn2_lambda;
+	double *eP_lambda;
+	double *eP2_lambda;
+	double *power;
 
-	float *alpha_lambda_hat;
-	float *Qeq_lambda_inverse;
-	float *Bmin_lambda;
-	float *Bmin_lambda_sub;
+	double *alpha_lambda_hat;
+	double *Qeq_lambda_inverse;
+	double *Bmin_lambda;
+	double *Bmin_lambda_sub;
 	int *k_mod;
 };
 

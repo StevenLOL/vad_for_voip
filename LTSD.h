@@ -13,40 +13,42 @@
 #include <deque>
 #include "string.h"
 #include "math.h"
+#include "utils.h"
 #include "ffft/FFTReal.h"
 #include "MinimumStatistics.h"
 class LTSD {
 public:
 	// windowsizeは2の冪乗(256以上)で必ず偶数サイズにすること、orderは奇数(5, 7, 11)が望ましい
-	LTSD(int winsize, int samprate, int order = 5,float e0 = 200.0, float e1 = 300.0, float lambda0 = 40.0, float lambda1 = 50.0);
+	LTSD(int winsize, int samprate, int order = 7,double e0 = -50.0, double e1 = -20.0, double lambda0 = 20.0, double lambda1 = 10.0);
 	virtual ~LTSD();
-	bool process(short *signal);
-	short* getSignal(); // 取得したsignalは必ず利用後deleteすること
+	bool process(char *input);
+	char* getSignal(); // 取得したsignalは必ず利用後deleteすること
 private:
 	void createWindow();
 	void calcLTSE();
-	float calcLTSD();
+	double calcLTSD();
 	bool isSignal();
 	void createNoiseProfile();
-	float calcPower();
+	double calcPower();
+	double calcNoisePower();
 	int windowsize;
 	int fftsize;
 	int samplingrate;
 	int m_order;
-	float m_e0;
-	float m_e1;
-	float m_lambda0;
-	float m_lambda1;
-	float* window;
-	float* ltse;
-	float* noise_profile;
+	double m_e0;
+	double m_e1;
+	double m_lambda0;
+	double m_lambda1;
+	double* window;
+	double* ltse;
+	double* noise_profile;
 	bool estimated;
 
-	ffft::FFTReal<float> *fftreal;
+	ffft::FFTReal<double> *fftreal;
 	MinimumStatistics *ms;
-	float *fft_in;
-	float* fft_out;
-	std::deque<float*> amp_history;
+	double *fft_in;
+	double* fft_out;
+	std::deque<double*> amp_history;
 	std::deque<short*> signal_history;
 };
 
