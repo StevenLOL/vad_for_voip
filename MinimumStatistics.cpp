@@ -91,7 +91,7 @@ void MinimumStatistics::process(float *amp){
 		power[i] = amp[i] * amp[i];
 	}
 	// eq9
-	float tmp = (sumVector(fftsize, amp)/sumVector(fftsize, power) - 1);
+	float tmp = (sumVector(fftsize, P_lambda)/sumVector(fftsize, power) - 1);
 	float alpha_c_lambda_tilde = 1.0 / (tmp * tmp + 1.0);
 
 	// eq10
