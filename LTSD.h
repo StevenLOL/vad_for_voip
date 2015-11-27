@@ -15,7 +15,9 @@
 #include "math.h"
 #include "utils.h"
 #include "ffft/FFTReal.h"
-#include "MinimumStatistics.h"
+//#include "MinimumStatistics.h"
+#include "MmseBasedNpe.h"
+
 class LTSD {
 public:
 	// windowsizeは2の冪乗(256以上)で必ず偶数サイズにすること。
@@ -48,7 +50,7 @@ private:
 	bool estimated;
 
 	ffft::FFTReal<double> *fftreal;
-	MinimumStatistics *ms;
+	MmseBasedNpe *mmse;
 	double *fft_in;
 	double* fft_out;
 	std::deque<double*> amp_history;

@@ -24,6 +24,9 @@ LTSD::LTSD(int winsize, int samprate, int order, double e0, double e1, double la
 		noise_profile[i] = 0.0;
 	}
 	fft_out = new double[windowsize];
+    for(int i=0; i< fftsize; i++){
+      fft_out[i] = 0.0;
+    }
 	estimated = false;
 	createWindow();
 	fftreal = new ffft::FFTReal<double>(fftsize);
@@ -45,8 +48,8 @@ LTSD::~LTSD() {
 	delete[] noise_profile;
 	delete fftreal;
 
-	if (ms != NULL){
-		delete ms;
+	if (mmse != NULL){
+		delete mmse;
 	}
 }
 
@@ -60,10 +63,7 @@ bool LTSD::process(char *input){
 	for(int i=0; i<fftsize; i++){
 		amp[i] = fabs(fft_out[i]);
 	}
-    double sum = 0;
-    for (int i = 0; i < fftsize; i++) {
-        sum += pow(amp[i], 2);
-    }
+
 	short* sig = new short[windowsize];
 	memcpy(sig, signal, sizeof(short) * windowsize);
 	signal_history.push_back(sig);
@@ -73,11 +73,11 @@ bool LTSD::process(char *input){
 		if(!estimated){
 			createNoiseProfile();
 			estimated = true;
-			ms = new MinimumStatistics(fftsize, samplingrate, noise_profile);
+			mmse = new MmseBasedNpe(fftsize, noise_profile);
 		}
-		if (ms != NULL){
-			ms->process(amp);
-			//ms->updateNoiseProfile(noise_profile);
+		if (mmse != NULL){
+			mmse->process(amp);
+			mmse->updateNoiseProfile(noise_profile);
 		}
 		//履歴長が指定以上なので、先頭を削除してltsd判定
 		delete[] signal_history[0];

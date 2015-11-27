@@ -12,7 +12,7 @@ MinimumStatistics::MinimumStatistics(int size, int samplingrate, double *noise_p
 	int i = 0;
 	counter = 0;
 	fftsize = size;
-	double frametime = (double)fftsize / (double)samplingrate;
+	double frametime = (double)fftsize * 2.0 / (double)samplingrate;
 	snrexp = (-1.0)*frametime/0.064;
 	av = 2.12;
 	alpha_c_lambda = 0.7;
@@ -219,7 +219,7 @@ void MinimumStatistics::process(double *amp){
 				}
 			}
 			// replace all previously stored values of actmin by actminsub
-			if (lmin_flag_lambda[i] && actmin_lambda_sub[i] < noise_slope_max * Pmin_u_lambda[i] && Pmin_u_lambda[i] < actmin_lambda_sub[i]){
+			if (lmin_flag_lambda[i] == 1 && actmin_lambda_sub[i] < noise_slope_max * Pmin_u_lambda[i] && Pmin_u_lambda[i] < actmin_lambda_sub[i]){
 				Pmin_u_lambda[i] = actmin_lambda_sub[i];
 				for(j = 0; j < U; j++){
 					actbuf[j][i] = Pmin_u_lambda[i];
