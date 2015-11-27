@@ -12,6 +12,7 @@
 #include <vector>
 #include <deque>
 #include "string.h"
+#include <cmath>
 #include "math.h"
 #include "utils.h"
 #include "ffft/FFTReal.h"

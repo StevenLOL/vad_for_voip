@@ -61,7 +61,7 @@ bool LTSD::process(char *input){
 	fftreal->do_fft(fft_out, fft_in);
 	double *amp = new double[fftsize];
 	for(int i=0; i<fftsize; i++) {
-		if (!isinf(fft_out[i]) && !isnan(fft_out[i])) {
+		if (!std::isinf(fft_out[i]) && !std::isnan(fft_out[i])) {
 			amp[i] = fabs(fft_out[i]);
 		}
 	}
@@ -99,7 +99,7 @@ bool LTSD::isSignal(){
 	double e = calcPower();
     double e2 = calcNoisePower();
 	double sn = fabs(e - e2);
-    
+
 
 
 	if (e2 < m_e0){
