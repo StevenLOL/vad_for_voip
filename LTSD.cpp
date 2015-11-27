@@ -58,7 +58,7 @@ bool LTSD::process(char *input){
 	fftreal->do_fft(fft_out, fft_in);
 	double *amp = new double[fftsize];
 	for(int i=0; i<fftsize; i++){
-		amp[i] = abs(fft_out[i]);
+		amp[i] = fabs(fft_out[i]);
 	}
     double sum = 0;
     for (int i = 0; i < fftsize; i++) {
