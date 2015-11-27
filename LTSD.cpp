@@ -96,13 +96,7 @@ bool LTSD::isSignal(){
 	double ltsd = calcLTSD();
 	double e = calcPower();
     double e2 = calcNoisePower();
-    if (ltsd > 10) {
-        return true;
-    }else{
-        return false;
-    }
 
-    /*
 	if (e < m_e0){
 		if(ltsd > m_lambda0){
 			return true;
@@ -115,16 +109,15 @@ bool LTSD::isSignal(){
 		}else{
 			return false;
 		}
-	}else{
-        double lamb = (m_lambda0-m_lambda1)/(m_e0/m_e1)*e + m_lambda0 - (m_lambda0-m_lambda1)/(1.0-(m_e0/m_e1));
-    LOGE("%f, %f, %f", lamb, ltsd, e);
-	if (ltsd > lamb){
-        return true;
-	}else{
-        return false;
-	}
-	//}
-     */
+	}else {
+        double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e + m_lambda0 -
+                      (m_lambda0 - m_lambda1) / (1.0 - (m_e0 / m_e1));
+        if (ltsd > lamb) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 double LTSD::calcPower(){
