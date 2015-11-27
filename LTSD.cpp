@@ -99,8 +99,7 @@ bool LTSD::isSignal(){
 	double e = calcPower();
     double e2 = calcNoisePower();
 	double sn = fabs(e - e2);
-
-	LOGE("ltsd: %f, e: %f, ne: %f, snr: %f", ltsd, e, e2, fabs(sn));
+    
 
 
 	if (e2 < m_e0){
