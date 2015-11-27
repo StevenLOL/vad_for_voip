@@ -7,7 +7,6 @@
 
 #include "LTSD.h"
 
-
 LTSD::LTSD(int winsize, int samprate, int order, double e0, double e1, double lambda0, double lambda1){
 	windowsize = winsize;
 	fftsize = winsize / 2;
@@ -57,11 +56,14 @@ bool LTSD::process(char *input){
     short *signal = (short *)input;
 	for(int i=0; i<windowsize; i++){
 		fft_in[i]=(double(signal[i]) / 32767.0) * window[i];
+		fft_out[i] = 0.0;
 	}
 	fftreal->do_fft(fft_out, fft_in);
 	double *amp = new double[fftsize];
-	for(int i=0; i<fftsize; i++){
-		amp[i] = fabs(fft_out[i]);
+	for(int i=0; i<fftsize; i++) {
+		if (!isinf(fft_out[i]) && !isnan(fft_out[i])) {
+			amp[i] = fabs(fft_out[i]);
+		}
 	}
 
 	short* sig = new short[windowsize];
@@ -96,21 +98,25 @@ bool LTSD::isSignal(){
 	double ltsd = calcLTSD();
 	double e = calcPower();
     double e2 = calcNoisePower();
+	double sn = fabs(e - e2);
 
-	if (e < m_e0){
+	LOGE("ltsd: %f, e: %f, ne: %f, snr: %f", ltsd, e, e2, fabs(sn));
+
+
+	if (e2 < m_e0){
 		if(ltsd > m_lambda0){
 			return true;
 		}else{
 			return false;
 		}
-	}else if (e > m_e1){
+	}else if (e2 > m_e1){
 		if(ltsd > m_lambda1){
 			return true;
 		}else{
 			return false;
 		}
 	}else {
-        double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e + m_lambda0 -
+        double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e2 + m_lambda0 -
                       (m_lambda0 - m_lambda1) / (1.0 - (m_e0 / m_e1));
         if (ltsd > lamb) {
             return true;

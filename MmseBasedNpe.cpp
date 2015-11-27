@@ -15,10 +15,10 @@ MmseBasedNpe::MmseBasedNpe(int size, double *noiseProfile) {
 
 	q = 0.5; // a priori probability of speech presence:
 	priorFact = q / (1 - q);
-	xiOptDb = 15; // optimal fixed a priori SNR for SPP estimation
-	xiOpt = pow(10, (xiOptDb / 10));
-	logGLRFact = log(1.0 / (1 + xiOpt));
-	GLRexp = xiOpt / (1 + xiOpt);
+	xiOptDb = 15.0; // optimal fixed a priori SNR for SPP estimation
+	xiOpt = pow(10.0, (xiOptDb / 10.0));
+	logGLRFact = log(1.0 / (1.0 + xiOpt));
+	GLRexp = xiOpt / (1.0 + xiOpt);
 
 	PH1mean = makeVector(fftsize, 0.5);
 	noisePow = new double[fftsize];
@@ -52,7 +52,7 @@ void MmseBasedNpe::process(double* amp) {
 			tmp = 200.0;
 		}
 		GLR[i] = priorFact * exp(tmp);
-		PH1 = GLR[i] / (1.0 + GLR[i]);
+		PH1[i] = GLR[i] / (1.0 + GLR[i]);
 		PH1mean[i] = alphaPH1mean * PH1mean[i] + (1.0-alphaPH1mean) * PH1[i];
 		if(PH1mean[i] > 0.99){
 			if (PH1[i] > 0.99){
