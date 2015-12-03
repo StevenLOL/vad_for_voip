@@ -207,3 +207,11 @@ void LTSD::createWindow(){
 		}
 	}
 }
+
+void LTSD::updateParams(double e0, double e1, double lambda0, double lambda1){
+ 	m_e0 = e0;
+	m_e1 = e1;
+	m_lambda0 = lambda0;
+	m_lambda1 = lambda1; 
+}
+

@@ -29,6 +29,7 @@ public:
 	virtual ~LTSD();
 	bool process(char *input);
 	char* getSignal(); // 取得したsignalは必ず利用後deleteすること。byteで返しているが、アーキテクチャのエンディアンでのshort型の配列になっている
+    void updateParams(double e0, double e1, double lambda0, double lambda1);
 private:
 	void createWindow();
 	void calcLTSE();
