@@ -102,11 +102,11 @@ bool LTSD::isSignal(){
 	double ltsd = calcLTSD();
 	double e = calcPower();
     double e2 = calcNoisePower();
-	double sn = fabs(e - e2);
-    double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e2 + m_lambda0 -
+	//double sn = fabs(e - e2);
+    double lamb = (m_lambda0 - m_lambda1) / (m_e0 - m_e1) * e2 + m_lambda0 -
                   (m_lambda0 - m_lambda1) / (1.0 - (m_e1 / m_e0));
 
-    LOGE("signal: %f, noise: %f, lambda:%f", e, e2, lamb);
+    //LOGE("signal: %f, noise: %f, ltsd: %f, lambda:%f, e0:%f", e, e2, ltsd, lamb, m_e0);
 
 
 	if (e2 < m_e0){
@@ -136,7 +136,7 @@ double LTSD::calcPower(){
 	for(int i = 0; i < fftsize; i++){
 		sum += amp[i] * amp[i];
 	}
-	return 10 * log10((sum / fftsize) / (1.0e-6 * 1.0e-6));
+	return 10 * log10((sum / fftsize) / ((1.0e-5 * 2.0) * (1.0e-5 * 2.0)));
 }
 
 double LTSD::calcNoisePower(){
@@ -144,7 +144,7 @@ double LTSD::calcNoisePower(){
     for(int i = 0; i < fftsize; i++){
         s += noise_profile[i];
     }
-    return 10 * log10((s / fftsize) / (1.0e-6 * 1.0e-6));
+    return 10 * log10((s / fftsize) / ((1.0e-5 * 2.0) * (1.0e-5 * 2.0)));
 }
 
 char* LTSD::getSignal(){
