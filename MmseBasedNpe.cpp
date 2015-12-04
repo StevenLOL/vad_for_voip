@@ -32,11 +32,13 @@ MmseBasedNpe::MmseBasedNpe(int size, double *noiseProfile) {
 
 MmseBasedNpe::~MmseBasedNpe() {
 	// TODO Auto-generated destructor stub
+	delete[] PH1mean;
 	delete[] noisePow;
 	delete[] noisyPer;
 	delete[] snrPost1;
 	delete[] estimate;
 	delete[] GLR;
+	delete[] PH1;
 }
 
 
