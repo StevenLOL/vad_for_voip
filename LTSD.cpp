@@ -7,6 +7,10 @@
 
 #include "LTSD.h"
 
+//#include <android/log.h>
+//#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, "vaddsp-jni", __VA_ARGS__))
+
+
 LTSD::LTSD(int winsize, int samprate, int order, double e0, double e1, double lambda0, double lambda1){
 	windowsize = winsize;
 	fftsize = winsize / 2;
@@ -99,7 +103,10 @@ bool LTSD::isSignal(){
 	double e = calcPower();
     double e2 = calcNoisePower();
 	double sn = fabs(e - e2);
+    double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e2 + m_lambda0 -
+                  (m_lambda0 - m_lambda1) / (1.0 - (m_e1 / m_e0));
 
+    LOGE("signal: %f, noise: %f, lambda:%f", e, e2, lamb);
 
 
 	if (e2 < m_e0){
@@ -115,8 +122,6 @@ bool LTSD::isSignal(){
 			return false;
 		}
 	}else {
-        double lamb = (m_lambda0 - m_lambda1) / (m_e0 / m_e1) * e2 + m_lambda0 -
-                      (m_lambda0 - m_lambda1) / (1.0 - (m_e0 / m_e1));
         if (ltsd > lamb) {
             return true;
         } else {
@@ -131,7 +136,7 @@ double LTSD::calcPower(){
 	for(int i = 0; i < fftsize; i++){
 		sum += amp[i] * amp[i];
 	}
-	return 10 * log10(sum / fftsize);
+	return 10 * log10((sum / fftsize) / (1.0e-6 * 1.0e-6));
 }
 
 double LTSD::calcNoisePower(){
@@ -139,7 +144,7 @@ double LTSD::calcNoisePower(){
     for(int i = 0; i < fftsize; i++){
         s += noise_profile[i];
     }
-    return 10 * log10(s / fftsize);
+    return 10 * log10((s / fftsize) / (1.0e-6 * 1.0e-6));
 }
 
 char* LTSD::getSignal(){
