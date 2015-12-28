@@ -33,6 +33,7 @@ LTSD::LTSD(int winsize, int samprate, int order, double e0, double e1, double la
 	estimated = false;
 	createWindow();
 	fftreal = new ffft::FFTReal<double>(fftsize);
+    mmse = NULL;
 }
 
 LTSD::~LTSD() {
